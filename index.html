@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:fb="http://www.facebook.com/2008/fbml">
+<head>
+	<title>Friends In Town</title>
+	<meta property="og:title" content="Friends In Town" />
+	<meta property="og:type" content="website" />
+	<!--  <meta property="og:image" content="http://profile.ak.fbcdn.net/hprofile-ak-snc4/hs355.snc4/41800_157551267602956_958536_n.jpg"/>-->
+	<meta property="og:url" content="http://localhost/FriendsInTown.html" />
+	<!-- put your site URL here -->
+	<meta property="og:site_name" content="frinedsintown" />
+	<meta property="fb:app_id" content="228667873926506">
+	<!-- Replace app id with your own-->
+	<meta property="og:description" content="Find out which of your friends are in any city" />
+	<script>
+	function search() {
+		var useHome = document.getElementById('hometown').checked;
+		var useLoc = document.getElementById('currentloc').checked;
+		if(!document.getElementById('city').value)
+		{
+			alert("No city specified!");
+			return;
+		}
+		var fql = 'SELECT uid, name, hometown_location, current_location FROM user WHERE uid IN (SELECT uid2 FROM friend WHERE uid1 = me()) AND '
+					+ (useHome
+						? 'hometown_location'
+						: useLoc 
+							? 'current_location'
+							: '(hometown_location OR current_location)');
+ 		FB.api('fql', { q: fql }, responseHandler);
+	}
+	function responseHandler(response) {
+		var city = document.getElementById('city').value.toLowerCase();
+		var resTxt = [];
+		for(var i in response.data)
+		{
+			var friend = response.data[i];
+			if(isHomeMatching(friend, city) || isCurLocMatching(friend, city))
+				resTxt.push('<li><a href="https://www.facebook.com/', friend.uid,
+						'" target="_top"><img src="https://graph.facebook.com/', friend.uid,
+						'/picture?type=square" alt="', friend.name, '"/>', friend.name, '</a></li>');
+		}
+		if(resTxt.length == 0)
+			resTxt.push('<li>No results. Sorry.</li>');
+		document.getElementById('results').innerHTML = resTxt.join('');
+	}
+	function isHomeMatching(friend, city) {
+		return 	(document.getElementById('hometown').checked || document.getElementById('both').checked)
+				&& friend.hometown_location
+				&& friend.hometown_location.name
+				&& friend.hometown_location.name.toLowerCase().indexOf(city) >= 0;
+	}
+	function isCurLocMatching(friend, city) {
+		return 	(document.getElementById('currentloc').checked || document.getElementById('both').checked)
+				&& friend.current_location
+				&& friend.current_location.name
+				&& friend.current_location.name.toLowerCase().indexOf(city) >= 0;
+	}
+	</script>
+</head>
+<body>
+	<div id="fb-root" />
+	<script>
+		window.fbAsyncInit = function() {
+			FB.init({
+				appId : '228667873926506', // App ID
+				channelUrl : '//localhost/channel.html', // Channel File
+				status : true, // check login status
+				cookie : true, // enable cookies to allow the server to access the session
+				xfbml : true
+			// parse XFBML
+			});
+
+			// Additional initialization code here
+			FB.getLoginStatus(function(response){
+				var login = document.getElementById('fb-login-button').style;
+				if (response.status === 'connected') {
+				    // the user is logged in and has authenticated your
+				    // app, and response.authResponse supplies
+				    // the user's ID, a valid access token, a signed
+				    // request, and the time the access token 
+				    // and signed request each expire
+				    login.visibility = 'hidden';
+				  } else if (response.status === 'not_authorized') {
+				    // the user is logged in to Facebook, 
+				    // but has not authenticated your app
+				  } else {
+					login.visibility = 'visible';
+				  }
+				});
+		};
+
+		// Load the SDK Asynchronously
+		(function(d) {
+			var js, id = 'facebook-jssdk', ref = d
+					.getElementsByTagName('script')[0];
+			if (d.getElementById(id)) {
+				return;
+			}
+			js = d.createElement('script');
+			js.id = id;
+			js.async = true;
+			js.src = "//connect.facebook.net/en_US/all.js";
+			ref.parentNode.insertBefore(js, ref);
+		}(document));
+	</script>
+
+	<div id="fb-login-button" class="fb-login-button">Login</div>
+	<h1>Friends In Town</h1>
+	<p>
+	<form action="javascript:search()">
+		<input type="radio" name="search" id="hometown" /><label for="hometown">Search hometown</label><br />
+		<input type="radio" name="search" id="currentloc" /><label for="currentloc">Search current location</label><br />
+		<input type="radio" name="search" id="both" checked="checked" /><label for="both">Search both</label><br />
+		<label for="city">City: </label><input type="text" id="city" /><br />
+		<button type="submit">Search</button>
+	</form>
+	</p>
+	<ul id="results">
+	</ul>
+</body>
+</html>
