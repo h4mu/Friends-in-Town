@@ -3,11 +3,11 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:fb="http://www.facebook.com/2008/fbml">
 <head>
-	<title>Friends In Town</title>
-	<meta property="og:title" content="Friends In Town" />
+	<title>Friends in Town</title>
+	<meta property="og:title" content="Friends in Town" />
 	<meta property="og:type" content="website" />
 	<!--  <meta property="og:image" content="http://profile.ak.fbcdn.net/hprofile-ak-snc4/hs355.snc4/41800_157551267602956_958536_n.jpg"/>-->
-	<meta property="og:url" content="http://localhost/FriendsInTown.html" />
+	<meta property="og:url" content="http://users.hszk.bme.hu/~ht554/" />
 	<!-- put your site URL here -->
 	<meta property="og:site_name" content="frinedsintown" />
 	<meta property="fb:app_id" content="228667873926506">
@@ -65,7 +65,7 @@
 		window.fbAsyncInit = function() {
 			FB.init({
 				appId : '228667873926506', // App ID
-				channelUrl : '//localhost/channel.html', // Channel File
+				channelUrl : '//users.hszk.bme.hu/~ht554/channel.html', // Channel File
 				status : true, // check login status
 				cookie : true, // enable cookies to allow the server to access the session
 				xfbml : true
@@ -82,6 +82,7 @@
 				    // request, and the time the access token 
 				    // and signed request each expire
 				    login.visibility = 'hidden';
+					document.getElementById('form').style.visibility = 'visible';
 				  } else if (response.status === 'not_authorized') {
 				    // the user is logged in to Facebook, 
 				    // but has not authenticated your app
@@ -109,7 +110,8 @@
 	<div id="fb-login-button" class="fb-login-button">Login</div>
 	<h1>Friends In Town</h1>
 	<p>
-	<form action="javascript:search()">
+	<noscript>Facebook needs JavaScript enabled in your browser!</noscript>
+	<form id="form" action="javascript:search()" style="visibility: hidden">
 		<input type="radio" name="search" id="hometown" /><label for="hometown">Search hometown</label><br />
 		<input type="radio" name="search" id="currentloc" /><label for="currentloc">Search current location</label><br />
 		<input type="radio" name="search" id="both" checked="checked" /><label for="both">Search both</label><br />
@@ -117,7 +119,6 @@
 		<button type="submit">Search</button>
 	</form>
 	</p>
-	<ul id="results">
-	</ul>
+	<ul id="results" />
 </body>
 </html>
