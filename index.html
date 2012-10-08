@@ -1,22 +1,20 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:fb="http://www.facebook.com/2008/fbml">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<title>Friends in Town</title>
+    <meta charset="utf-8">
 	<meta property="og:title" content="Friends in Town" />
 	<meta property="og:type" content="website" />
-	<!--  <meta property="og:image" content="http://profile.ak.fbcdn.net/hprofile-ak-snc4/hs355.snc4/41800_157551267602956_958536_n.jpg"/>-->
+	<!--  <meta property="og:image" content=""/>-->
 	<meta property="og:url" content="http://users.hszk.bme.hu/~ht554/" />
-	<!-- put your site URL here -->
 	<meta property="og:site_name" content="frinedsintown" />
 	<meta property="fb:app_id" content="228667873926506">
-	<!-- Replace app id with your own-->
 	<meta property="og:description" content="Find out which of your friends are in any city" />
-	<script>
+    <script>
 	function search() {
-		var useHome = document.getElementById('hometown').checked;
-		var useLoc = document.getElementById('currentloc').checked;
+		var useHome = document.getElementById('hometown_location').checked;
+		var useLoc = document.getElementById('current_location').checked;
 		if(!document.getElementById('city').value)
 		{
 			alert("No city specified!");
@@ -36,7 +34,7 @@
 		for(var i in response.data)
 		{
 			var friend = response.data[i];
-			if(isHomeMatching(friend, city) || isCurLocMatching(friend, city))
+			if(isMatching(friend, 'hometown_location', city) || isMatching(friend, 'current_location', city))
 				resTxt.push('<li><a href="https://www.facebook.com/', friend.uid,
 						'" target="_top"><img src="https://graph.facebook.com/', friend.uid,
 						'/picture?type=square" alt="', friend.name, '"/>', friend.name, '</a></li>');
@@ -45,22 +43,15 @@
 			resTxt.push('<li>No results. Sorry.</li>');
 		document.getElementById('results').innerHTML = resTxt.join('');
 	}
-	function isHomeMatching(friend, city) {
-		return 	(document.getElementById('hometown').checked || document.getElementById('both').checked)
-				&& friend.hometown_location
-				&& friend.hometown_location.name
-				&& friend.hometown_location.name.toLowerCase().indexOf(city) >= 0;
-	}
-	function isCurLocMatching(friend, city) {
-		return 	(document.getElementById('currentloc').checked || document.getElementById('both').checked)
-				&& friend.current_location
-				&& friend.current_location.name
-				&& friend.current_location.name.toLowerCase().indexOf(city) >= 0;
+	function isMatching(friend, location, city) {
+		return 	(document.getElementById(location).checked || document.getElementById('both').checked)
+				&& friend[location]
+				&& friend[location].name
+				&& friend[location].name.toLowerCase().indexOf(city) >= 0;
 	}
 	</script>
 </head>
 <body>
-	<div id="fb-root" />
 	<script>
 		window.fbAsyncInit = function() {
 			FB.init({
@@ -74,22 +65,13 @@
 
 			// Additional initialization code here
 			FB.getLoginStatus(function(response){
-				var login = document.getElementById('fb-login-button').style;
 				if (response.status === 'connected') {
-				    // the user is logged in and has authenticated your
-				    // app, and response.authResponse supplies
-				    // the user's ID, a valid access token, a signed
-				    // request, and the time the access token 
-				    // and signed request each expire
-				    login.visibility = 'hidden';
 					document.getElementById('form').style.visibility = 'visible';
-				  } else if (response.status === 'not_authorized') {
-				    // the user is logged in to Facebook, 
-				    // but has not authenticated your app
-				  } else {
-					login.visibility = 'visible';
-				  }
-				});
+				}
+			});
+			FB.Event.subscribe('auth.login', function () {
+					document.getElementById('form').style.visibility = 'visible';
+			});
 		};
 
 		// Load the SDK Asynchronously
@@ -107,13 +89,13 @@
 		}(document));
 	</script>
 
-	<div id="fb-login-button" class="fb-login-button">Login</div>
+	<div class="fb-login-button" data-show-faces="true" data-width="200" data-max-rows="1" data-scope="friends_hometown,friends_location">Login</div>
 	<h1>Friends In Town</h1>
 	<p>
 	<noscript>Facebook needs JavaScript enabled in your browser!</noscript>
 	<form id="form" action="javascript:search()" style="visibility: hidden">
-		<input type="radio" name="search" id="hometown" /><label for="hometown">Search hometown</label><br />
-		<input type="radio" name="search" id="currentloc" /><label for="currentloc">Search current location</label><br />
+		<input type="radio" name="search" id="hometown_location" /><label for="hometown_location">Search hometown</label><br />
+		<input type="radio" name="search" id="current_location" /><label for="current_location">Search current location</label><br />
 		<input type="radio" name="search" id="both" checked="checked" /><label for="both">Search both</label><br />
 		<label for="city">City: </label><input type="text" id="city" /><br />
 		<button type="submit">Search</button>
