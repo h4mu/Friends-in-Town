@@ -3,15 +3,42 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<title>Friends in Town</title>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
 	<meta property="og:title" content="Friends in Town" />
 	<meta property="og:type" content="website" />
-	<!--  <meta property="og:image" content=""/>-->
+	<meta property="og:image" content="https://fbcdn-sphotos-a-a.akamaihd.net/hphotos-ak-ash4/320406_163127840478281_1022372412_n.png"/>
 	<meta property="og:url" content="http://users.hszk.bme.hu/~ht554/" />
 	<meta property="og:site_name" content="frinedsintown" />
 	<meta property="fb:app_id" content="228667873926506">
 	<meta property="og:description" content="Find out which of your friends are in any city" />
+	<link rel="stylesheet" href="style.css" type="text/css" />
     <script>
+    function initPage() {
+		document.getElementById('form').style.visibility = 'visible';
+		if (navigator.geolocation)
+			navigator.geolocation.getCurrentPosition(
+				getCityName,
+				null,
+				{
+					timeout: 5000,
+					maximumAge: (1000 * 60 * 15),
+					enableHighAccuracy: true
+				});
+    }
+	function getCityName(position) {
+		var script = document.createElement('script');
+		script.setAttribute('src', 'http://nominatim.openstreetmap.org/reverse?format=json&json_callback=reversed&zoom=10&lat='
+			+ position.coords.latitude + '&lon=' + position.coords.longitude);
+		document.head.appendChild(script);
+	}
+	function reversed(json) {
+		if(json && json.address && json.address.town)
+			document.getElementById('city').value = json.address.town;
+	}
+	function geocoded(json) {
+		if(json)
+			document.body.innerHTML += '<p>' + json[0].boundingbox + '; ' + json[0]['class'] + '; ' + json[0].display_name + '; ' + json[0].osm_type + '; ' + json[0].type + '</p>';
+	}
 	function search() {
 		var useHome = document.getElementById('hometown_location').checked;
 		var useLoc = document.getElementById('current_location').checked;
@@ -20,18 +47,21 @@
 			alert("No city specified!");
 			return;
 		}
+/*		var script = document.createElement('script');
+		script.setAttribute('src', 'http://nominatim.openstreetmap.org/search?format=json&json_callback=geocoded&limit=1&q=' + document.getElementById('city').value);
+		document.head.appendChild(script);*/
 		var fql = 'SELECT uid, name, hometown_location, current_location FROM user WHERE uid IN (SELECT uid2 FROM friend WHERE uid1 = me()) AND '
 					+ (useHome
 						? 'hometown_location'
 						: useLoc 
 							? 'current_location'
 							: '(hometown_location OR current_location)');
- 		FB.api('fql', { q: fql }, responseHandler);
+ 		FB.api('fql', { q: fql }, fqlHandler);
 	}
-	function responseHandler(response) {
+	function fqlHandler(response) {
 		var city = document.getElementById('city').value.toLowerCase();
 		var resTxt = [];
-		for(var i in response.data)
+		for(var i = 0; i < response.data.length; i++)
 		{
 			var friend = response.data[i];
 			if(isMatching(friend, 'hometown_location', city) || isMatching(friend, 'current_location', city))
@@ -66,7 +96,7 @@
 			// Additional initialization code here
 			FB.getLoginStatus(function(response){
 				if (response.status === 'connected') {
-					document.getElementById('form').style.visibility = 'visible';
+					initPage();
 				}
 			});
 			FB.Event.subscribe('auth.login', function () {
@@ -88,7 +118,6 @@
 			ref.parentNode.insertBefore(js, ref);
 		}(document));
 	</script>
-
 	<div class="fb-login-button" data-show-faces="true" data-width="200" data-max-rows="1" data-scope="friends_hometown,friends_location">Login</div>
 	<h1>Friends In Town</h1>
 	<p>
